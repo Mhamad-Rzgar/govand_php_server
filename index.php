@@ -1,5 +1,8 @@
 <?php
 
+header('Access-Control-Allow-Origin: *');
+header('Content-Type: application/json');
+
 
 // mySql
 $servername = "localhost";
@@ -48,18 +51,23 @@ $oracleConn = new PDO("oci:dbname=".$tns, $db_username, $db_password);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+
+    $imageName = $_POST['imageName'];
+    $imageData = $_POST['imageData'];
+
+
     // mysql
     if(str_starts_with($_SERVER["PATH_INFO"], "/api/mysql")){
         
-        header('Content-Type: application/json');
+        
 
-        $postBody = file_get_contents("php://input");
+        // $postBody = file_get_contents("php://input");
 
-        $postBody = json_decode($postBody, true);
+        // $postBody = json_decode($postBody, true);
 
         
-        $imageName = $postBody["imageName"];
-        $imageData = $postBody["imageData"];
+        // $imageName = $postBody["imageName"];
+        // $imageData = $postBody["imageData"];
 
         $sql = "INSERT INTO image (imageName, imageData) VALUES ('$imageName', '$imageData')";
 
@@ -77,13 +85,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
         header('Content-Type: application/json');
         
-        $postBody = file_get_contents("php://input");
+        // $postBody = file_get_contents("php://input");
 
-        $postBody = json_decode($postBody, true);
+        // $postBody = json_decode($postBody, true);
 
 
-        $imageName = $postBody["imageName"];
-        $imageData = $postBody["imageData"];
+        // $imageName = $postBody["imageName"];
+        // $imageData = $postBody["imageData"];
 
         $sql = "INSERT INTO assetData (imageName, imageData) VALUES ('$imageName', '$imageData')";
 
@@ -100,12 +108,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
         header('Content-Type: application/json');
         
-        $postBody = file_get_contents("php://input");
+        // $postBody = file_get_contents("php://input");
 
-        $postBody = json_decode($postBody, true);
+        // $postBody = json_decode($postBody, true);
 
-        $imageName = $postBody["imageName"];
-        $imageData = $postBody["imageData"];
+        // $imageName = $postBody["imageName"];
+        // $imageData = $postBody["imageData"];
 
         $sql = "INSERT INTO image (imageName, imageData) VALUES ('$imageName', '$imageData')";
 
@@ -116,17 +124,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "Error: " . $sql . "<br>" . $conn->error;
         }
     }
+
     // oracle
     else if(str_starts_with($_SERVER["PATH_INFO"], "/api/oracle")){
             
         header('Content-Type: application/json');
         
-        $postBody = file_get_contents("php://input");
+        // $postBody = file_get_contents("php://input");
 
-        $postBody = json_decode($postBody, true);
+        // $postBody = json_decode($postBody, true);
 
-        $imageName = $postBody["imageName"];
-        $imageData = $postBody["imageData"];
+        // $imageName = $postBody["imageName"];
+        // $imageData = $postBody["imageData"];
 
 
         $sql = "INSERT INTO assetData (imageName, imageData) VALUES ('$imageName', '$imageData')";
