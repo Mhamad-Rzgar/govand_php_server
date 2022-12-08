@@ -1,5 +1,6 @@
 <?php
 
+
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 
@@ -10,12 +11,10 @@ $username = "root";
 $password = "HHaa1414@";
 $dbname = "mytestdb";
 
-
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-
 
 
 
@@ -35,11 +34,12 @@ $tns = "
     (CONNECT_DATA =
         (SERVICE_NAME = XE)
     )
-    )
-        ";
+)";
 $db_username = "system";
 $db_password = "HHaa1414@";
 
+// $oracleConn = new PDO("oci:dbname=".$tns, $db_username, $db_password);
+// enable both ERRMODE_EXCEPTION and attr_persistent
 $oracleConn = new PDO("oci:dbname=".$tns, $db_username, $db_password);
 
 // if ($oracleConn) {
@@ -48,7 +48,7 @@ $oracleConn = new PDO("oci:dbname=".$tns, $db_username, $db_password);
 
 
 
-
+// nardn
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
@@ -58,16 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // mysql
     if(str_starts_with($_SERVER["PATH_INFO"], "/api/mysql")){
-        
-        
-
-        // $postBody = file_get_contents("php://input");
-
-        // $postBody = json_decode($postBody, true);
-
-        
-        // $imageName = $postBody["imageName"];
-        // $imageData = $postBody["imageData"];
 
         $sql = "INSERT INTO image (imageName, imageData) VALUES ('$imageName', '$imageData')";
 
@@ -82,17 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // access
     else if(str_starts_with($_SERVER["PATH_INFO"], "/api/access")){
-            
-        header('Content-Type: application/json');
         
-        // $postBody = file_get_contents("php://input");
-
-        // $postBody = json_decode($postBody, true);
-
-
-        // $imageName = $postBody["imageName"];
-        // $imageData = $postBody["imageData"];
-
         $sql = "INSERT INTO assetData (imageName, imageData) VALUES ('$imageName', '$imageData')";
 
         if($accessDb->query($sql)){
@@ -105,15 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // sqlServer
     else if(str_starts_with($_SERVER["PATH_INFO"], "/api/sqlServer")){
-            
-        header('Content-Type: application/json');
-        
-        // $postBody = file_get_contents("php://input");
-
-        // $postBody = json_decode($postBody, true);
-
-        // $imageName = $postBody["imageName"];
-        // $imageData = $postBody["imageData"];
 
         $sql = "INSERT INTO image (imageName, imageData) VALUES ('$imageName', '$imageData')";
 
@@ -127,25 +98,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // oracle
     else if(str_starts_with($_SERVER["PATH_INFO"], "/api/oracle")){
-            
-        header('Content-Type: application/json');
-        
-        // $postBody = file_get_contents("php://input");
-
-        // $postBody = json_decode($postBody, true);
-
-        // $imageName = $postBody["imageName"];
-        // $imageData = $postBody["imageData"];
-
-
-        $sql = "INSERT INTO assetData (imageName, imageData) VALUES ('$imageName', '$imageData')";
-
-        if($oracleConn->query($sql)){
-            echo "New record created successfully";
-        }
-        else{
-            echo "Error: " . $sql . "<br>" . $conn->error;
-        }
+        $smtm = $oracleConn->prepare("INSERT INTO assetData (imageName, imageData) VALUES (:imageName, :imageData)");
+        $smtm->bindParam(':imageName', $imageName);
+        // imageData make to String
+        $smtm->bindParam(':imageData', $imageData, PDO::PARAM_STR, strlen($imageData));
+        $oracleConn->beginTransaction();
+        $smtm->execute();
+        $oracleConn->commit();
     }
     
     else{
@@ -155,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-
+// wargrtn
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     // mysql
@@ -168,7 +127,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         if ($result->num_rows > 0) {
         while($row = $result->fetch_assoc()) {
             header('Content-Type: application/json');
-            echo json_encode(array('imageId' => $row["imageId"], 'imageName' => $row["imageName"], 'imageData' => $row["imageData"], "startServerTime" => Date("Y-m-d H:i:s")));
+            echo json_encode(
+                array(
+                    'imageId' => $row["imageId"],
+                    'imageName' => $row["imageName"],
+                    'imageData' => $row["imageData"],
+                    "startServerTime" => Date("Y-m-d H:i:s")
+                )
+            );
         }
         } else {
             echo "0 results";
@@ -209,10 +175,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // oracle
     else if(str_starts_with($_SERVER["PATH_INFO"], "/api/oracle")){
         header('Content-Type: application/json');
+        
         $sql = "SELECT * FROM assetData ORDER BY imageId DESC";
         $result = $oracleConn->query($sql);
         $data = $result->fetch(PDO::FETCH_ASSOC);
-        echo json_encode(array('imageId' => $data["IMAGEID"], 'imageName' => $data["IMAGENAME"], 'imageData' => $data["IMAGEDATA"]));
+
+        echo json_encode(
+            array(
+                'imageId' => $data["IMAGEID"],
+                'imageName' => $data["IMAGENAME"],
+                'imageData' => stream_get_contents($data["IMAGEDATA"])
+            )
+        );
         exit;
     } 
     else{
@@ -293,5 +267,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 //echo json_encode($data);
 //
 
+
+
+function generateRandomString($length = 10000) {
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $charactersLength = strlen($characters);
+    $randomString = '';
+    for ($i = 0; $i < $length; $i++) {
+        $randomString .= $characters[rand(0, $charactersLength - 1)];
+    }
+    return $randomString;
+}
 
 ?>
