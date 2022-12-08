@@ -73,14 +73,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // access
     else if(str_starts_with($_SERVER["PATH_INFO"], "/api/access")){
         
-        $sql = "INSERT INTO assetData (imageName, imageData) VALUES ('$imageName', '$imageData')";
+        $smtm = $accessDb->prepare("INSERT INTO assetData (imageName, imageData) VALUES (:imageName, :imageData)");
 
-        if($accessDb->query($sql)){
-            echo "New record created successfully";
-        }
-        else{
-            echo "Error: " . $sql . "<br>" . $conn->error;
-        }
+        $smtm->bindParam(':imageName', $imageName);
+        $smtm->bindParam(':imageData', $imageData, PDO::Param_LOB);
+        $accessDb->beginTransaction();
+        $smtm->execute();
+        $accessDb->commit();
+
+        // $accessDb->beginTransaction();
+        // $smtm->execute();
+
+        // if($accessDb->query($sql)){
+        //     echo "New record created successfully";
+        // }
+        // else{
+        //     echo "Error: " . $sql . "<br>" . $conn->error;
+        // }
     }
 
     // sqlServer
